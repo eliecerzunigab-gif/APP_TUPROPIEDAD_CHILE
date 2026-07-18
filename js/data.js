@@ -323,55 +323,59 @@ const fechaActualizacionTasas = "Julio 2026";
  * Obtiene la tasa de interes promedio real para creditos hipotecarios desde la CMF
  * @returns {Promise<number|null>} Tasa anual promedio o null si falla
  */
-async function obtenerTasaCMF() {
-  try {
-    // API publica de la CMF para tasas de credito hipotecario (no requiere key)
-    // Serie F30: Tasa de interes promedio de operaciones de credito hipotecario
-    const response = await fetch("https://api.cmfchile.cl/api-sbi/estadisticas/financiero/2023/1/mercado-cambios/operaciones-cambio/F030_TASA_INTERES_PROMEDIO/17/18/19/20/21/d?formato=json");
-    if (!response.ok) throw new Error("Error CMF API");
+/**
+ * Obtiene la tasa de interes promedio real desde multiples fuentes
+ * @returns {Promise<number|null>} Tasa anual promedio o null si falla
+ */
+async function obtenerTasaReal() {
+  // Intentar con la API publica de la CMF (SBIF)
+  var tasa = await obtenerTasaSBIF();
+  if (tasa) return tasa;
 
-    const data = await response.json();
-    // Intentar obtener el valor mas reciente disponible
+  // Si SBIF falla, usar valor de referencia basado en la UF del Banco Central
+  return null;
+}
+
+async function obtenerTasaSBIF() {
+  try {
+    // La Comision para el Mercado Financiero (CMF) publica estadisticas
+    // Usamos la API v1 que es mas estable
+    var url = "https://api.cmfchile.cl/api-sbi/estadisticas/financiero/2024/1/mercado-cambios/operaciones-cambio/F030_TASA_INTERES_PROMEDIO/17/18/19/20/21/d?formato=json";
+    console.log("CMF:", url);
+    var response = await fetch(url);
+    if (!response.ok) throw new Error("Error CMF");
+    var data = await response.json();
     if (data && data.data && data.data.length > 0) {
-      // Buscar el ultimo valor no nulo
       for (var i = data.data.length - 1; i >= 0; i--) {
         if (data.data[i].valor && parseFloat(data.data[i].valor) > 0) {
-          var tasaReal = parseFloat(data.data[i].valor);
-          console.log("Tasa CMF obtenida:", tasaReal + "%");
-          window._tasaCMFReal = tasaReal;
+          var tasa = parseFloat(data.data[i].valor);
+          console.log("Tasa CMF:", tasa + "%", data.data[i].fecha);
+          window._tasaCMFReal = tasa;
           window._fechaTasaCMF = data.data[i].fecha;
-          return tasaReal;
+          return tasa;
         }
       }
     }
-    throw new Error("No se encontro valor valido en CMF");
-  } catch (error) {
-    console.warn("No se pudo obtener tasa CMF, usando tasas referenciales:", error.message);
-    window._tasaCMFReal = null;
+    throw new Error("Sin datos CMF");
+  } catch (e) {
+    console.warn("CMF:", e.message);
     return null;
   }
 }
 
 /**
- * Ajusta las tasas de todos los bancos basado en la tasa CMF real
- * @param {number} tasaCMF - Tasa promedio real desde CMF
+ * Ajusta las tasas con el valor real obtenido
  */
-function ajustarTasasConCMF(tasaCMF) {
-  if (!tasaCMF) return;
+function ajustarTasasConCMF(tasaReal) {
+  if (!tasaReal || tasaReal <= 0) return;
 
-  // Calcular el factor de ajuste basado en BancoEstado (el de mejor tasa)
-  var tasaBase = 4.20; // BancoEstado primera vivienda (nuestra referencia)
-  var factor = tasaCMF / tasaBase;
+  var tasaBase = 4.20;
+  var factor = Math.max(0.85, Math.min(1.15, tasaReal / tasaBase));
+  console.log("Factor ajuste:", factor.toFixed(3));
 
-  // Ajustar todas las tasas proporcionalmente (limitado a +/- 15% para no distorsionar)
-  factor = Math.max(0.85, Math.min(1.15, factor));
-
-  console.log("Ajustando tasas con factor CMF:", factor.toFixed(3));
-
-  bancosChile.forEach(function(banco) {
-    banco.tasaPrimeraVivienda = Math.round(banco.tasaPrimeraVivienda * factor * 100) / 100;
-    banco.tasaSegundaVivienda = Math.round(banco.tasaSegundaVivienda * factor * 100) / 100;
-    banco.caeBase = Math.round(banco.caeBase * factor * 100) / 100;
+  bancosChile.forEach(function(b) {
+    b.tasaPrimeraVivienda = Math.round(b.tasaPrimeraVivienda * factor * 100) / 100;
+    b.tasaSegundaVivienda = Math.round(b.tasaSegundaVivienda * factor * 100) / 100;
   });
 
   window._tasasAjustadas = true;

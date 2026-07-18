@@ -905,14 +905,14 @@
     // Cargar UF desde mindicador.cl (REAL)
     await obtenerValorUF();
 
-    // Intentar ajustar tasas con CMF (REAL)
+    // Intentar ajustar tasas con CMF/SBIF (REAL)
     try {
-      var tasaCMF = await obtenerTasaCMF();
-      if (tasaCMF) {
-        ajustarTasasConCMF(tasaCMF);
+      var tasaReal = await obtenerTasaReal();
+      if (tasaReal) {
+        ajustarTasasConCMF(tasaReal);
       }
     } catch (e) {
-      console.warn("No se pudo conectar con CMF, usando tasas referenciales");
+      console.warn("No se pudo obtener tasa real, usando tasas referenciales");
     }
 
     actualizarDisplayFuentes();
