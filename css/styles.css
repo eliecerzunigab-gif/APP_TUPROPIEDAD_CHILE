@@ -418,6 +418,15 @@ section:nth-child(even) { background: #fff; }
 
 /* ===== Subsidios ===== */
 .subsidios-section { background: var(--bg); }
+.subsidios-tabla-container { margin-bottom: 32px; overflow-x: auto; }
+.subsidios-tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.subsidios-tabla th { background: var(--secondary); color: #fff; padding: 12px 14px; text-align: left; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+.subsidios-tabla td { padding: 10px 14px; border-bottom: 1px solid var(--border-light); background: #fff; }
+.subsidios-tabla tbody tr:hover td { background: #f8fafc; }
+.subsidios-tabla td strong { color: var(--primary); }
+[data-theme="dark"] .subsidios-tabla td { background: var(--bg-card); color: var(--text); }
+[data-theme="dark"] .subsidios-tabla tbody tr:hover td { background: #1e293b; }
+[data-theme="dark"] .subsidios-tabla th { background: #020617; }
 .subsidios-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
 .subsidio-card {
   background: #fff; border-radius: var(--radius-lg); padding: 24px;
@@ -435,6 +444,7 @@ section:nth-child(even) { background: #fff; }
 }
 .subsidio-badge-blue { background: #e0f2fe; color: #0369a1; }
 .subsidio-badge-green { background: #d1fae5; color: #065f46; }
+.subsidio-badge-orange { background: #fff7ed; color: #9a3412; }
 .subsidio-tramos { margin: 12px 0; display: flex; flex-direction: column; gap: 6px; }
 .tramo-item { font-size: 0.85rem; color: var(--text-secondary); padding: 4px 0; }
 .tramo-item strong { color: var(--text); }

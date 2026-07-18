@@ -348,10 +348,49 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-badge"><i class="fa-solid fa-hand-holding-heart"></i> Beneficios</span>
-                <h2>Subsidios Habitacionales Disponibles</h2>
-                <p>Conoce los subsidios del Estado de Chile que pueden ayudarte a comprar tu vivienda.</p>
+                <h2>Subsidios Habitacionales del Estado</h2>
+                <p>Conoce los subsidios disponibles y verifica si calificas segun tu perfil financiero.</p>
             </div>
+
+            <!-- Tabla resumen -->
+            <div class="subsidios-tabla-container">
+                <table class="subsidios-tabla">
+                    <thead>
+                        <tr>
+                            <th>Programa</th>
+                            <th>2da Vivienda</th>
+                            <th>Destinado a</th>
+                            <th>Valor Max. Prop.</th>
+                            <th>Credito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>DS49</strong></td><td>No</td><td>Sectores vulnerables (sin credito)</td><td>950 UF</td><td>No</td></tr>
+                        <tr><td><strong>DS1</strong></td><td>No</td><td>Sectores medios y profesionales</td><td>Hasta 4.000 UF</td><td>Si</td></tr>
+                        <tr><td><strong>DS19</strong></td><td>No</td><td>Integracion social en inmobiliarias</td><td>2.200-2.600 UF</td><td>Si</td></tr>
+                        <tr><td><strong>Subsidio al Dividendo</strong></td><td>Si</td><td>Compradores viviendas nuevas</td><td>4.000 UF</td><td>Si</td></tr>
+                        <tr><td><strong>DFL2</strong></td><td>No</td><td>Credito viviendas economicas</td><td>5.200 UF</td><td>Si</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="subsidios-grid" id="subsidiosContainer">
+                <!-- DS49 -->
+                <div class="subsidio-card">
+                    <div class="subsidio-header">
+                        <i class="fa-solid fa-hand-holding-heart"></i>
+                        <div>
+                            <h4>DS49 - Sectores Vulnerables</h4>
+                            <span class="subsidio-badge subsidio-badge-orange">SERVIU</span>
+                        </div>
+                    </div>
+                    <div class="subsidio-tramos">
+                        <div class="tramo-item"><strong>Construccion sitio propio:</strong> Hasta 950 UF</div>
+                        <div class="tramo-item"><strong>Nuevos terrenos:</strong> Hasta 1.050 UF</div>
+                    </div>
+                    <p class="subsidio-desc">Sin credito hipotecario. Para familias en vulnerabilidad social. Postulacion via SERVIU.</p>
+                </div>
+
                 <!-- DS1 -->
                 <div class="subsidio-card">
                     <div class="subsidio-header">
@@ -362,11 +401,12 @@
                         </div>
                     </div>
                     <div class="subsidio-tramos">
-                        <div class="tramo-item"><strong>Tramo 1:</strong> Hasta 1.100 UF · Subsidio: 500 UF</div>
-                        <div class="tramo-item"><strong>Tramo 2:</strong> Hasta 1.600 UF · Subsidio: 400 UF</div>
-                        <div class="tramo-item"><strong>Tramo 3:</strong> Hasta 2.200 UF · Subsidio: 300 UF</div>
+                        <div class="tramo-item"><strong>Tramo 1:</strong> Hasta 1.100 UF · Sub: 500 UF</div>
+                        <div class="tramo-item"><strong>Tramo 2:</strong> Hasta 1.600 UF · Sub: 400 UF</div>
+                        <div class="tramo-item"><strong>Tramo 3:</strong> Hasta 2.600 UF · Sub: 300 UF</div>
+                        <div class="tramo-item"><strong>Tramo 4:</strong> Hasta 4.000 UF · Sub: 200 UF</div>
                     </div>
-                    <p class="subsidio-desc">Para familias de sectores medios sin vivienda propia. Requiere ahorro minimo y credito hipotecario aprobado.</p>
+                    <p class="subsidio-desc">Requiere credito hipotecario aprobado. Para familias sin vivienda propia.</p>
                 </div>
 
                 <!-- DS19 -->
@@ -378,7 +418,19 @@
                             <span class="subsidio-badge subsidio-badge-blue">MINVU</span>
                         </div>
                     </div>
-                    <p class="subsidio-desc" style="margin-top:12px">Subsidio de 300 UF para proyectos de integracion social. Viviendas hasta 2.200 UF en barrios bien localizados con buena conectividad.</p>
+                    <p class="subsidio-desc" style="margin-top:12px">250 UF de subsidio. Viviendas hasta 2.200-2.600 UF en proyectos de integracion social en barrios bien localizados.</p>
+                </div>
+
+                <!-- Subsidio al Dividendo -->
+                <div class="subsidio-card">
+                    <div class="subsidio-header">
+                        <i class="fa-solid fa-coins"></i>
+                        <div>
+                            <h4>Subsidio al Dividendo</h4>
+                            <span class="subsidio-badge subsidio-badge-green">2da Vivienda ✓</span>
+                        </div>
+                    </div>
+                    <p class="subsidio-desc" style="margin-top:12px">Aplica para SEGUNDA vivienda. Reduce el dividendo mensual para compradores de viviendas nuevas con credito hipotecario. Viviendas hasta 4.000 UF.</p>
                 </div>
 
                 <!-- DFL2 -->
@@ -391,13 +443,12 @@
                         </div>
                     </div>
                     <div class="subsidio-tramos">
-                        <div class="tramo-item"><strong>Tasa preferencial:</strong> 3,0% anual fija</div>
-                        <div class="tramo-item"><strong>Pie minimo:</strong> 5% (financia hasta 95%)</div>
-                        <div class="tramo-item"><strong>Vivienda maxima:</strong> UF 5.200 (RM) / UF 5.500 (regiones)</div>
-                        <div class="tramo-item"><strong>Beneficio:</strong> Dividendos sin reajuste + exento de impuesto de timbre</div>
+                        <div class="tramo-item"><strong>Tasa 3%:</strong> fija anual</div>
+                        <div class="tramo-item"><strong>Pie minimo:</strong> 5% (financia 95%)</div>
+                        <div class="tramo-item"><strong>Max:</strong> UF 5.200 (RM)</div>
                     </div>
                     <div class="subsidio-calculo" id="dfl2Resultado">
-                        <span id="dfl2SimResult">Completa el formulario del Paso 1 para calcular tu DFL2</span>
+                        <span id="dfl2SimResult">Completa el Paso 1 para ver si calificas</span>
                     </div>
                 </div>
             </div>

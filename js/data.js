@@ -383,27 +383,64 @@ function ajustarTasasConCMF(tasaReal) {
 
 // ===== SUBSIDIOS HABITACIONALES CHILE =====
 const subsidiosChile = {
+  ds49: {
+    nombre: "DS49 - Sectores Vulnerables",
+    icono: "fa-hand-holding-heart",
+    aplica2da: false,
+    destinatario: "Sectores vulnerables (sin credito)",
+    viviendaMaxUF: 950,
+    montos: [
+      { nombre: "Construccion en sitio propio", monto: 950 },
+      { nombre: "Construccion en nuevos terrenos", monto: 1050 }
+    ],
+    descripcion: "Para familias en situacion de vulnerabilidad social. No requiere credito hipotecario. Postulacion grupal o individual a traves de SERVIU.",
+    requiereCredito: false
+  },
   ds1: {
-    nombre: "DS1 - Subsidio para Sectores Medios",
-    tramos: {
-      t1: { nombre: "Tramo 1", monto: 500, descripcion: "Viviendas hasta 1.100 UF" },
-      t2: { nombre: "Tramo 2", monto: 400, descripcion: "Viviendas hasta 1.600 UF" },
-      t3: { nombre: "Tramo 3", monto: 300, descripcion: "Viviendas hasta 2.200 UF" }
-    },
-    descripcion: "Subsidio del MINVU para familias de sectores medios que no son propietarias de vivienda. Requiere ahorro minimo y credito hipotecario aprobado."
+    nombre: "DS1 - Sectores Medios",
+    icono: "fa-building-columns",
+    aplica2da: false,
+    destinatario: "Sectores medios y profesionales",
+    viviendaMaxUF: 4000,
+    tramos: [
+      { nombre: "Tramo 1", montoUF: 500, viviendaMaxUF: 1100 },
+      { nombre: "Tramo 2", montoUF: 400, viviendaMaxUF: 1600 },
+      { nombre: "Tramo 3", montoUF: 300, viviendaMaxUF: 2600 },
+      { nombre: "Tramo 4", montoUF: 200, viviendaMaxUF: 4000 }
+    ],
+    descripcion: "Para familias de sectores medios. Requiere ahorro minimo y credito hipotecario aprobado. Subsidio complementario al credito bancario.",
+    requiereCredito: true
   },
   ds19: {
-    nombre: "DS19 - Programa Integracion Social",
-    monto: 300,
-    descripcion: "Subsidio para proyectos de integracion social en barrios bien localizados. Viviendas hasta 2.200 UF en regiones especificas."
+    nombre: "DS19 - Integracion Social",
+    icono: "fa-people-group",
+    aplica2da: false,
+    destinatario: "Integracion social en proyectos inmobiliarios",
+    viviendaMaxUF: 2600,
+    montoUF: 250,
+    descripcion: "Para proyectos de integracion social en barrios bien localizados con buena conectividad. Viviendas de hasta 2.200 a 2.600 UF segun region.",
+    requiereCredito: true
+  },
+  subsidioDividendo: {
+    nombre: "Subsidio al Dividendo",
+    icono: "fa-coins",
+    aplica2da: true,
+    destinatario: "Compradores de viviendas nuevas con credito",
+    viviendaMaxUF: 4000,
+    descripcion: "Aplica para SEGUNDA vivienda. Subsidio para compradores de viviendas nuevas que obtengan un credito hipotecario. Reduce el valor del dividendo mensual.",
+    requiereCredito: true
   },
   dfl2: {
-    nombre: "DFL2 - Credito para Viviendas Economicas",
-    descripcion: "Permite financiar hasta el 100% de viviendas de hasta UF 5.200 (RM) o UF 5.500 (regiones) con tasa preferencial rebajada y dividendos sin reajuste. Exento de impuesto de timbre.",
+    nombre: "DFL2 - Viviendas Economicas",
+    icono: "fa-star",
+    aplica2da: false,
+    destinatario: "Primera vivienda con credito especial",
+    viviendaMaxUF: 5200,
     tasaAnual: 3.0,
-    viviendaMaximaUF: 5200,
     pieMinimo: 5,
-    financiamientoMax: 95
+    financiamientoMax: 95,
+    descripcion: "Credito especial con tasa 3% fija, pie 5% y dividendos sin reajuste. Exento de impuesto de timbre. Viviendas hasta UF 5.200 (RM).",
+    requiereCredito: true
   }
 };
 

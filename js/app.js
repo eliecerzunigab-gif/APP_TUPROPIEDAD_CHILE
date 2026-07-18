@@ -538,6 +538,36 @@
     return todas;
   }
 
+  function simularDFL2(capacidad) {
+    var dfl2 = subsidiosChile.dfl2;
+    var viviendaMaxCLP = Math.round(dfl2.viviendaMaximaUF * valorUF);
+    var pieMin = Math.round(viviendaMaxCLP * (dfl2.pieMinimo / 100));
+    var creditoMax = Math.round(viviendaMaxCLP * (dfl2.financiamientoMax / 100));
+    var plazo = capacidad.plazoMeses;
+    var tasaM = (dfl2.tasaAnual / 100) / 12;
+    var dividendo = 0;
+    if (tasaM > 0 && plazo > 0) {
+      dividendo = creditoMax * (tasaM * Math.pow(1 + tasaM, plazo)) / (Math.pow(1 + tasaM, plazo) - 1);
+    }
+    dividendo = Math.round(dividendo);
+    var puedeAcceder = capacidad.capacidadPagoBruta >= dividendo && capacidad.ahorrosPie >= pieMin;
+    var resultElem = document.getElementById('dfl2SimResult');
+    if (resultElem) {
+      if (puedeAcceder) {
+        resultElem.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981"></i> <strong>¡Calificas para DFL2!</strong> Vivienda: UF ' +
+          dfl2.viviendaMaximaUF.toLocaleString('es-CL') + ' (~' + formatCLP(viviendaMaxCLP) +
+          '). Pie: ' + formatCLP(pieMin) + '. Div. est. tasa 3%: <strong>' + formatCLP(dividendo) + '/mes</strong>';
+        resultElem.style.color = '#065f46'; resultElem.style.background = '#d1fae5';
+      } else {
+        var razon = capacidad.capacidadPagoBruta < dividendo ?
+          'tu dividendo excede tu capacidad (' + formatCLP(dividendo) + '/mes > ' + formatCLP(capacidad.capacidadPagoBruta) + '/mes)' :
+          'necesitas pie minimo de ' + formatCLP(pieMin) + ' (tienes ' + formatCLP(capacidad.ahorrosPie) + ')';
+        resultElem.innerHTML = '<i class="fa-solid fa-circle-info"></i> DFL2 no disponible: ' + razon;
+        resultElem.style.color = '#92400e'; resultElem.style.background = '#fef3c7';
+      }
+    }
+  }
+
   function actualizarBadgeML() {
     var badge = $('#mlStatusBadge');
     if (!badge) return;
