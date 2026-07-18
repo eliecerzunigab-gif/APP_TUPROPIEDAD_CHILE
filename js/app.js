@@ -772,6 +772,7 @@
     var fuente = usandoML ? ' (datos de MercadoLibre Chile)' : '';
     showToast('¡Simulacion completada! ' + propiedades.length + ' propiedades encontradas a tu alcance' + fuente);
     actualizarBadgeML();
+    simularDFL2(capacidad);
   }
 
   function resetFormulario() {

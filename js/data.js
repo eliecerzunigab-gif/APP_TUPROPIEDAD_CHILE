@@ -381,6 +381,32 @@ function ajustarTasasConCMF(tasaReal) {
   window._tasasAjustadas = true;
 }
 
+// ===== SUBSIDIOS HABITACIONALES CHILE =====
+const subsidiosChile = {
+  ds1: {
+    nombre: "DS1 - Subsidio para Sectores Medios",
+    tramos: {
+      t1: { nombre: "Tramo 1", monto: 500, descripcion: "Viviendas hasta 1.100 UF" },
+      t2: { nombre: "Tramo 2", monto: 400, descripcion: "Viviendas hasta 1.600 UF" },
+      t3: { nombre: "Tramo 3", monto: 300, descripcion: "Viviendas hasta 2.200 UF" }
+    },
+    descripcion: "Subsidio del MINVU para familias de sectores medios que no son propietarias de vivienda. Requiere ahorro minimo y credito hipotecario aprobado."
+  },
+  ds19: {
+    nombre: "DS19 - Programa Integracion Social",
+    monto: 300,
+    descripcion: "Subsidio para proyectos de integracion social en barrios bien localizados. Viviendas hasta 2.200 UF en regiones especificas."
+  },
+  dfl2: {
+    nombre: "DFL2 - Credito para Viviendas Economicas",
+    descripcion: "Permite financiar hasta el 100% de viviendas de hasta UF 5.200 (RM) o UF 5.500 (regiones) con tasa preferencial rebajada y dividendos sin reajuste. Exento de impuesto de timbre.",
+    tasaAnual: 3.0,
+    viviendaMaximaUF: 5200,
+    pieMinimo: 5,
+    financiamientoMax: 95
+  }
+};
+
 // ===== MERCADOLIBRE API - PROPIEDADES REALES =====
 // Categorias de Inmuebles en MercadoLibre Chile (MLC)
 const categoriasML = {
