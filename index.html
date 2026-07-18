@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuCasa Chile - Encuentra tu Vivienda Ideal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="info-bar" id="infoBar">
+        <div class="container info-bar-row">
+            <div class="info-bar-sources">
+                <span id="tasaSourceLabel" class="info-bar-item">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <strong>Tasas referenciales</strong> · Conectando con CMF...
+                </span>
+                <span class="info-bar-separator">|</span>
+                <span id="propSourceLabel" class="info-bar-item">
+                    <i class="fa-solid fa-building"></i>
+                    Propiedades: MercadoLibre Chile
+                </span>
+            </div>
+            <span class="info-bar-item uf-display">
+                <i class="fa-solid fa-coins"></i>
+                <span id="ufValorDisplay">UF: Cargando...</span>
+                <span id="ufFechaDisplay" class="uf-fecha"></span>
+                <span class="uf-source">· Fuente: mindicador.cl</span>
+            </span>
+        </div>
+    </div>
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fa-solid fa-house-chimney"></i>
+                <span>TuCasa</span><span class="logo-accent">Chile</span>
+            </div>
+            <nav class="nav">
+                <a href="#simulador" class="nav-link active">Simulador</a>
+                <a href="#creditos" class="nav-link">Creditos</a>
+                <a href="#propiedades" class="nav-link">Propiedades</a>
+                <a href="#resultados" class="nav-link">Resultados</a>
+            </nav>
+            <div class="header-actions">
+                <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                    <span id="themeText">Oscuro</span>
+                </button>
+                <button class="nav-toggle" aria-label="Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <span class="hero-badge">Simulador Hipotecario</span>
+                <h1>Encuentra la mejor alternativa para comprar tu <span class="text-gradient">vivienda en Chile</span></h1>
+                <p>Compara creditos hipotecarios de todos los bancos, calcula tu capacidad de endeudamiento y descubre propiedades disponibles segun tu presupuesto.</p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">15+</span>
+                        <span class="hero-stat-label">Bancos</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">16</span>
+                        <span class="hero-stat-label">Regiones</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">100%</span>
+                        <span class="hero-stat-label">Gratuito</span>
+                    </div>
+                </div>
+                <a href="#simulador" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-calculator"></i> Comenzar Simulacion
+                </a>
+            </div>
+            <div class="hero-image">
+                <div class="hero-card">
+                    <div class="hero-card-header">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Tasas desde</span>
+                    </div>
+                    <div class="hero-card-rate">4,2%</div>
+                    <div class="hero-card-sub">anual · Credito Hipotecario</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+                <path d="M0,60 C360,120 1080,0 1440,60 L1440,120 L0,120 Z" fill="#f8fafc"/>
+            </svg>
+        </div>
+    </section>
+
+    <section id="simulador" class="simulador-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge"><i class="fa-solid fa-calculator"></i> Paso 1</span>
+                <h2>Simula tu Capacidad de Endeudamiento</h2>
+                <p>Completa tus datos financieros para calcular cuanto puedes pagar y que propiedades estan a tu alcance.</p>
+            </div>
+            <div class="simulador-grid">
+                <div class="simulador-form-card">
+                    <h3><i class="fa-solid fa-user-circle"></i> Perfil Financiero</h3>
+                    <form id="financialForm" class="financial-form">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-heart"></i> Estado Civil</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="estadoCivil" value="soltero" checked>
+                                    <span class="radio-custom"></span> Soltero(a)
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="estadoCivil" value="casado">
+                                    <span class="radio-custom"></span> Casado(a)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-home"></i> Tipo de Vivienda</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="tipoVivienda" value="primera" checked>
+                                    <span class="radio-custom"></span> Primera Vivienda
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="tipoVivienda" value="segunda">
+                                    <span class="radio-custom"></span> Segunda Vivienda
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-money-bill-wave"></i> Ingreso Mensual (Titular)</label>
+                                <div class="input-prefix">
+                                    <span class="prefix">$</span>
+                                    <input type="number" id="ingresoTitular" placeholder="Ej: 1.500.000" min="0" required>
+                                </div>
+                            </div>
+                            <div class="form-group" id="ingresoConyugeGroup" style="display:none;">
+                                <label><i class="fa-solid fa-hand-holding-dollar"></i> Ingreso Conyuge</label>
+                                <div class="input-prefix">
+                                    <span class="prefix">$</span>
+                                    <input type="number" id="ingresoConyuge" placeholder="Ej: 800.000" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-credit-card"></i> Deudas Mensuales</label>
+                            <div class="input-prefix">
+                                <span class="prefix">$</span>
+                                <input type="number" id="deudasMensuales" placeholder="Ej: 200.000" min="0" required>
+                            </div>
+                            <small class="form-hint">Creditos de consumo, tarjetas, prestamos, etc.</small>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-piggy-bank"></i> Ahorros para Pie</label>
+                            <div class="input-prefix">
+                                <span class="prefix">$</span>
+                                <input type="number" id="ahorrosPie" placeholder="Ej: 10.000.000" min="0" required>
+                            </div>
+                            <small class="form-hint">Minimo recomendado: 20% del valor de la propiedad</small>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-calendar-days"></i> Plazo del Credito (años)</label>
+                            <select id="plazoCredito" class="form-select">
+                                <option value="15">15 años</option>
+                                <option value="20" selected>20 años</option>
+                                <option value="25">25 años</option>
+                                <option value="30">30 años</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-map-location-dot"></i> Region de busqueda</label>
+                            <select id="regionBusqueda" class="form-select">
+                                <option value="">Todas las regiones</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-location-crosshairs"></i> Comuna de busqueda</label>
+                            <select id="comunaBusqueda" class="form-select">
+                                <option value="">Todas las comunas</option>
+                            </select>
+                            <small class="form-hint" id="comunaHint">Selecciona primero una region</small>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-building"></i> Tipo de Propiedad</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="tipoPropiedad" value="departamento" checked>
+                                    <span class="checkbox-custom"></span> Departamento
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="tipoPropiedad" value="casa" checked>
+                                    <span class="checkbox-custom"></span> Casa
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="tipoPropiedad" value="terreno">
+                                    <span class="checkbox-custom"></span> Terreno
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="tipoPropiedad" value="parcela">
+                                    <span class="checkbox-custom"></span> Parcela
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fa-solid fa-magnifying-glass"></i> Calcular y Buscar
+                        </button>
+                        <button type="button" id="resetBtn" class="btn btn-outline btn-full">
+                            <i class="fa-solid fa-rotate-left"></i> Limpiar
+                        </button>
+                    </form>
+                </div>
+                <div class="simulador-resumen-card" id="resumenCard">
+                    <h3><i class="fa-solid fa-chart-pie"></i> Tu Capacidad Financiera</h3>
+                    <div class="resumen-placeholder" id="resumenPlaceholder">
+                        <div class="placeholder-icon">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </div>
+                        <p>Completa el formulario y haz clic en <strong>"Calcular y Buscar"</strong> para ver tus resultados.</p>
+                    </div>
+                    <div class="resumen-content" id="resumenContent" style="display:none;">
+                        <div class="resumen-item">
+                            <span class="resumen-label">Ingreso Total Mensual</span>
+                            <span class="resumen-value" id="resIngresoTotal">$0</span>
+                        </div>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Capacidad de Pago (25% ingreso)</span>
+                            <span class="resumen-value highlight" id="resCapacidadPago">$0</span>
+                        </div>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Credito Maximo (segun dividendo)</span>
+                            <span class="resumen-value" id="resCreditoMax">$0</span>
+                        </div>
+                        <div class="resumen-divider"></div>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Prop. Max. por Pie (10%)</span>
+                            <span class="resumen-value" id="resPropMaxPie">$0</span>
+                        </div>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Prop. Max. por Dividendo</span>
+                            <span class="resumen-value" id="resPropMaxDiv">$0</span>
+                        </div>
+                        <div class="resumen-item resumen-total">
+                            <span class="resumen-label">Propiedad Maxima (limite menor)</span>
+                            <span class="resumen-value highlight-lg" id="resPropiedadMax">$0</span>
+                        </div>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Pie requerido (min. 10%)</span>
+                            <span class="resumen-value" id="resPieRequerido">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="creditos" class="creditos-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge"><i class="fa-solid fa-building-columns"></i> Paso 2</span>
+                <h2>Compara los Mejores Creditos Hipotecarios</h2>
+                <p>Las mejores alternativas de credito segun tu perfil, ordenadas de menor a mayor costo total.</p>
+            </div>
+            <div class="creditos-filters">
+                <div class="filter-group">
+                    <label>Ordenar por:</label>
+                    <select id="ordenarCreditos" class="form-select form-select-sm">
+                        <option value="tasa">Menor Tasa</option>
+                        <option value="cae">Menor CAE</option>
+                        <option value="dividendo">Menor Dividendo</option>
+                        <option value="costo">Menor Costo Total</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Dividendo maximo:</label>
+                    <span id="filtroDividendoLabel" class="filter-value">-</span>
+                </div>
+            </div>
+            <div class="creditos-grid" id="creditosContainer">
+                <div class="creditos-placeholder">
+                    <i class="fa-solid fa-building-columns placeholder-big"></i>
+                    <p>Completa tu perfil en el <strong>Paso 1</strong> para ver las mejores opciones de credito.</p>
+                </div>
+            </div>
+            <div class="creditos-tabla-container" id="creditosTablaContainer" style="display:none;">
+                <h3><i class="fa-solid fa-table"></i> Tabla Comparativa Detallada</h3>
+                <div class="table-wrapper">
+                    <table class="creditos-tabla" id="creditosTabla">
+                        <thead>
+                            <tr>
+                                <th>Banco</th>
+                                <th>Tasa Anual</th>
+                                <th>Dividendo</th>
+                                <th>CAE</th>
+                                <th>Costo Total</th>
+                                <th>Seguro Incendio</th>
+                                <th>Seg. Desgravamen</th>
+                                <th>Pie Min.</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="propiedades" class="propiedades-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge"><i class="fa-solid fa-magnifying-glass-location"></i> Paso 3</span>
+                <h2>Propiedades a tu Alcance</h2>
+                <p>Explora las propiedades disponibles segun tu presupuesto, region y tipo deseado.</p>
+            </div>
+            <div class="propiedades-filters">
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-filter"></i> Filtros:</label>
+                    <span id="filtroRegionLabel" class="filter-tag">Region Metropolitana</span>
+                    <span id="filtroTipoLabel" class="filter-tag">Casa · Depto</span>
+                    <span id="filtroPrecioLabel" class="filter-tag">Hasta: -</span>
+                </div>
+                <span id="mlStatusBadge" class="ml-badge ml-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Conectando con MercadoLibre...
+                </span>
+            </div>
+            <div class="propiedades-grid" id="propiedadesContainer">
+                <div class="propiedades-placeholder">
+                    <i class="fa-solid fa-building placeholder-big"></i>
+                    <p>Completa tu perfil y haz clic en <strong>"Calcular y Buscar"</strong> para ver propiedades.</p>
+                </div>
+            </div>
+            <div class="propiedades-resumen" id="propiedadesResumen" style="display:none;">
+                <span id="propiedadesEncontradas">0 propiedades encontradas</span>
+                <button class="btn btn-outline" id="exportarBtn">
+                    <i class="fa-solid fa-download"></i> Exportar Resultados
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="resultados" class="resultados-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge"><i class="fa-solid fa-lightbulb"></i> Consejos</span>
+                <h2>Guia para Comprar tu Vivienda</h2>
+                <p>Todo lo que necesitas saber para tomar la mejor decision.</p>
+            </div>
+            <div class="consejos-grid">
+                <div class="consejo-card">
+                    <div class="consejo-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                    <h4>El Pie del 20%</h4>
+                    <p>Los bancos financian hasta el 80% del valor. Necesitas al menos 20% de pie. A mayor pie, mejores condiciones.</p>
+                </div>
+                <div class="consejo-card">
+                    <div class="consejo-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <h4>Dividendo vs Ingreso</h4>
+                    <p>El dividendo no debe superar el 25% de tu ingreso liquido mensual para mantener una buena salud financiera.</p>
+                </div>
+                <div class="consejo-card">
+                    <div class="consejo-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <h4>Costos Adicionales</h4>
+                    <p>Tasacion, notaria, impuestos y conservador suman entre 1% y 2% del valor de la propiedad.</p>
+                </div>
+                <div class="consejo-card">
+                    <div class="consejo-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                    <h4>CAE: Carga Anual Equivalente</h4>
+                    <p>El CAE incluye tasa de interes mas todos los costos. Es el mejor indicador para comparar entre bancos.</p>
+                </div>
+                <div class="consejo-card">
+                    <div class="consejo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h4>Seguros Obligatorios</h4>
+                    <p>Todo credito requiere seguro de incendio y desgravamen. Algunos bancos permiten contratarlos externamente.</p>
+                </div>
+                <div class="consejo-card">
+                    <div class="consejo-icon"><i class="fa-solid fa-clock"></i></div>
+                    <h4>Plazo del Credito</h4>
+                    <p>A mayor plazo, menor dividendo pero mayor costo total. Evalua el equilibrio entre pago comodo y costo a largo plazo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-info">
+                <div class="logo footer-logo">
+                    <i class="fa-solid fa-house-chimney"></i>
+                    <span>TuCasa</span><span class="logo-accent">Chile</span>
+                </div>
+                <p>Herramienta gratuita de simulacion y comparacion de creditos hipotecarios en Chile. Tasas y condiciones referenciales.</p>
+                <p class="footer-disclaimer">(c) 2026 TuCasaChile · Informacion referencial · Verifica con cada banco</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-download"></i> Exportar Resultados</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="exportContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="copyBtn"><i class="fa-solid fa-copy"></i> Copiar</button>
+                <button class="btn btn-outline" id="printBtn"><i class="fa-solid fa-print"></i> Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
