@@ -1,44 +1,109 @@
 /**
  * TuCasaChile - Autenticacion con Clave Unica (OpenID Connect)
  * Flujo OAuth2 para validar identidad del usuario
+ * 
+ * SOLO extrae: RUT, nombre, apellidos (scope: openid run name)
+ * NO guarda datos bancarios, crediticios ni personales
+ * Datos de sesion se eliminan al cerrar el navegador
  */
 
-// === CONFIGURACION (Registrar en https://claveunica.gob.cl/desarrolladores) ===
+// === CONFIGURACION ===
+// Para usar Clave Unica REAL:
+// 1. Registrate en https://claveunica.gob.cl/desarrolladores
+// 2. Crea una aplicacion con:
+//    - Nombre: TuCasaChile
+//    - Redirect URI: https://TU_DOMINIO/callback.html
+//    - Scope: openid run name
+// 3. Copia el Client ID y Client Secret aqui
 var claveUnicaSettings = {
-  clientId: localStorage.getItem('tucasa-claveunica-clientid') || 'TU_CLIENT_ID_AQUI',
+  clientId: localStorage.getItem('tucasa-claveunica-clientid') || '',
   clientSecret: localStorage.getItem('tucasa-claveunica-secret') || '',
-  redirectUri: window.location.origin + '/callback.html',
-  // Solo solicitamos scope basico: RUT, nombre, apellidos
-  scope: 'openid run name',
+  redirectUri: window.location.origin + window.location.pathname.replace('index.html', 'callback.html'),
+  scope: 'openid run name',  // SOLO: identidad + RUT + nombre
   endpoints: {
-    // Entorno de pruebas (sandbox)
     authorization: 'https://accounts.claveunica.gob.cl/openid/authorize',
     token: 'https://accounts.claveunica.gob.cl/openid/token',
     userinfo: 'https://accounts.claveunica.gob.cl/openid/userinfo',
-    logout: 'https://accounts.claveunica.gob.cl/openid/logout',
-    // Sitio oficial de Clave Unica
-    portal: 'https://claveunica.gob.cl'
+    logout: 'https://accounts.claveunica.gob.cl/openid/logout'
   }
 };
 
+// =============================================
+// CLIENT ID TEMPORAL para GitHub Pages
+// Reemplazar con el tuyo tras registro en:
+// https://claveunica.gob.cl/desarrolladores
+// =============================================
+// Si tienes un Client ID real, pegalo aqui:
+// var MI_CLIENT_ID = "tu-client-id-de-clave-unica";
+// localStorage.setItem('tucasa-claveunica-clientid', MI_CLIENT_ID);
+
 /**
- * Inicia el flujo de autenticacion con Clave Unica
+ * Verifica si hay un Client ID valido configurado
+ */
+function tieneClaveUnicaReal() {
+  var id = claveUnicaSettings.clientId;
+  return id && id.length >= 20 && id !== 'TU_CLIENT_ID_AQUI';
+}
+
+/**
+ * Inicia el flujo de autenticacion con Clave Unica real
  */
 function iniciarLoginClaveUnica() {
-  // SIEMPRE usar modo demo hasta que se configure un Client ID real
-  // El Client ID real debe ser distinto al placeholder y tener al menos 20 caracteres
-  if (!claveUnicaSettings.clientId || 
-      claveUnicaSettings.clientId === 'TU_CLIENT_ID_AQUI' ||
-      claveUnicaSettings.clientId.length < 20) {
-    iniciarModoDemo();
-    return;
+  if (tieneClaveUnicaReal()) {
+    iniciarClaveUnicaReal();
+  } else {
+    mostrarOpcionesClaveUnica();
   }
+}
 
-  // Generar state aleatorio para prevenir CSRF
+/**
+ * Muestra opciones: registrar Client ID o probar en modo demo
+ */
+function mostrarOpcionesClaveUnica() {
+  var opcion = confirm(
+    '=== CLAVE UNICA - IDENTIDAD OFICIAL ===\n\n' +
+    '¿Deseas ingresar con Clave Unica REAL?\n\n' +
+    'Haz clic en Aceptar para configurar tu Client ID\n' +
+    '(Necesitas registrar tu app en claveunica.gob.cl)\n\n' +
+    'Haz clic en Cancelar para probar en modo demo'
+  );
+
+  if (opcion) {
+    // Intentar configurar Client ID
+    var clientId = prompt(
+      '=== CONFIGURAR CLAVE UNICA REAL ===\n\n' +
+      'Pasos previos:\n' +
+      '1. Ve a: https://claveunica.gob.cl/desarrolladores\n' +
+      '2. Inicia sesion con tu Clave Unica\n' +
+      '3. Crea una aplicacion nueva\n' +
+      '4. Usa como redirect_uri exactamente:\n   ' + claveUnicaSettings.redirectUri + '\n' +
+      '5. Copia el Client ID generado\n\n' +
+      'Pega aqui tu Client ID:'
+    );
+
+    if (clientId && clientId.length >= 20) {
+      localStorage.setItem('tucasa-claveunica-clientid', clientId);
+      claveUnicaSettings.clientId = clientId;
+      alert('✅ Client ID guardado. Ahora intenta ingresar nuevamente.');
+      iniciarLoginClaveUnica();
+    } else if (clientId) {
+      alert('❌ El Client ID ingresado no es valido. Debe tener al menos 20 caracteres.');
+    }
+  } else {
+    // Modo demo: sin Clave Unica, solo simulado
+    iniciarModoDemo();
+  }
+}
+
+/**
+ * Flujo REAL de Clave Unica (OAuth2 / OpenID Connect)
+ */
+function iniciarClaveUnicaReal() {
   var state = generarRandomString(32);
-  sessionStorage.setItem('claveunica-state', state);
-
   var nonce = generarRandomString(32);
+
+  // Guardar state y nonce SOLO en sessionStorage (se borra al cerrar)
+  sessionStorage.setItem('claveunica-state', state);
   sessionStorage.setItem('claveunica-nonce', nonce);
 
   var authUrl = claveUnicaSettings.endpoints.authorization + '?' +
@@ -49,14 +114,21 @@ function iniciarLoginClaveUnica() {
     '&state=' + state +
     '&nonce=' + nonce;
 
+  console.log('🔐 Redirigiendo a Clave Unica...');
   window.location.href = authUrl;
 }
 
+/**
+ * Modo demo: prueba sin Clave Unica real
+ */
 function iniciarModoDemo() {
-  var rut = prompt('=== MODO DEMOSTRACION ===\n\nProbaras la app con un perfil simulado.\n\nIngresa un RUT para simular (ej: 12.345.678-5):', '12.345.678-5');
+  var rut = prompt('=== MODO DEMOSTRACION ===\n\nSimulacion de identidad. No usa Clave Unica real.\n\nIngresa un RUT (ej: 12.345.678-5):', '12.345.678-5');
   if (!rut) return;
-  var nombre = prompt('Nombre a mostrar:', 'Usuario Demo');
+
+  var nombre = prompt('Nombre:', 'Usuario Demo');
   if (!nombre) nombre = 'Usuario Demo';
+
+  // Guardar SOLO en sessionStorage (se borra al cerrar)
   sessionStorage.setItem('tucasa-demo-rut', rut);
   sessionStorage.setItem('tucasa-demo-nombre', nombre);
   window.location.href = 'callback.html?demo=true';
@@ -64,24 +136,28 @@ function iniciarModoDemo() {
 
 /**
  * Procesa el callback de Clave Unica
- * Extrae el codigo, intercambia por token, obtiene userinfo
  */
 async function procesarCallbackClaveUnica() {
   var params = new URLSearchParams(window.location.search);
   var code = params.get('code');
   var state = params.get('state');
   var error = params.get('error');
+  var esDemo = params.get('demo');
 
   if (error) {
-    throw new Error('Autenticacion cancelada o error: ' + error);
+    console.error('❌ Clave Unica error:', error);
+    throw new Error('Autenticacion cancelada');
   }
 
-  if (!code) {
-    // Sin codigo: puede ser una visita directa o modo demo
+  if (esDemo === 'true') {
     return modoDemostracion();
   }
 
-  // Verificar state
+  if (!code) {
+    return modoDemostracion();
+  }
+
+  // Verificar state anti-CSRF
   var savedState = sessionStorage.getItem('claveunica-state');
   if (state !== savedState) {
     throw new Error('Error de seguridad: state no coincide');
@@ -89,14 +165,17 @@ async function procesarCallbackClaveUnica() {
 
   // Intercambiar codigo por token
   try {
+    console.log('🔄 Intercambiando codigo por token...');
     var tokenData = await intercambiarToken(code);
+
     if (tokenData && tokenData.access_token) {
+      console.log('✅ Token obtenido, consultando datos del usuario...');
       var userInfo = await obtenerInfoUsuario(tokenData.access_token);
-      return formatearUsuario(userInfo, tokenData);
+      return formatearUsuario(userInfo);
     }
   } catch (e) {
-    console.warn('Error intercambiando token, usando modo demo:', e.message);
-    return modoDemostracion();
+    console.error('❌ Error en autenticacion Clave Unica:', e.message);
+    throw new Error('No se pudo completar la autenticacion: ' + e.message);
   }
 
   return null;
@@ -111,10 +190,7 @@ async function intercambiarToken(code) {
   body.append('code', code);
   body.append('redirect_uri', claveUnicaSettings.redirectUri);
   body.append('client_id', claveUnicaSettings.clientId);
-
-  if (claveUnicaSettings.clientSecret) {
-    body.append('client_secret', claveUnicaSettings.clientSecret);
-  }
+  body.append('client_secret', claveUnicaSettings.clientSecret);
 
   var response = await fetch(claveUnicaSettings.endpoints.token, {
     method: 'POST',
@@ -123,7 +199,8 @@ async function intercambiarToken(code) {
   });
 
   if (!response.ok) {
-    throw new Error('Error al intercambiar token');
+    var errorText = await response.text();
+    throw new Error('Token exchange failed: ' + errorText);
   }
 
   return await response.json();
@@ -131,119 +208,88 @@ async function intercambiarToken(code) {
 
 /**
  * Obtiene la informacion del usuario autenticado
+ * SOLO extrae: RUT, nombre, apellidos (scope openid run name)
  */
 async function obtenerInfoUsuario(accessToken) {
   var response = await fetch(claveUnicaSettings.endpoints.userinfo, {
     headers: { 'Authorization': 'Bearer ' + accessToken }
   });
 
-  if (!response.ok) {
-    throw new Error('Error al obtener info del usuario');
-  }
+  if (!response.ok) throw new Error('Error al obtener datos del usuario');
 
   return await response.json();
 }
 
 /**
  * Formatea los datos del usuario desde Clave Unica
+ * SOLO extrae: RUT y nombre (info publica basica)
+ * NO guarda datos sensibles ni crediticios
  */
-function formatearUsuario(userInfo, tokenData) {
+function formatearUsuario(userInfo) {
   var user = {
-    rut: formatearRUT(userInfo.sub || userInfo.RUN || ''),
-    nombre: (userInfo.name || userInfo.nombre || '').trim(),
-    apellidos: ((userInfo.family_name || userInfo.apellidos || '')).trim(),
-    email: userInfo.email || '',
+    rut: formatearRUT(userInfo.sub || userInfo.RUN || userInfo.RUT || ''),
+    nombre: (userInfo.name || userInfo.nombre || userInfo.given_name || 'Usuario').trim(),
+    apellidos: (userInfo.family_name || userInfo.apellidos || '').trim(),
     verificado: true,
     metodo: 'claveunica',
     timestamp: new Date().toISOString()
   };
 
-  // Guardar en localStorage el perfil
-  localStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
+  // Guardar SOLO en sessionStorage (se borra al cerrar el navegador)
+  // NO se guardan datos en localStorage para proteger la privacidad
+  sessionStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
+
+  console.log('✅ Usuario autenticado via Clave Unica');
+  console.log('📋 RUT:', user.rut);
+  console.log('👤 Nombre:', user.nombre);
+  console.log('💡 Datos solo en sesion. Se eliminan al cerrar navegador.');
 
   return user;
 }
 
 /**
- * Modo demostracion: permite probar sin Clave Unica real
- * Simula una autenticacion exitosa con datos de prueba
+ * Modo demostracion
  */
 function modoDemostracion() {
-  var code = new URLSearchParams(window.location.search).get('code');
-  if (code) return null; // Si hay codigo pero no funciono, no usar demo
-
-  // Solo usar modo demo si estamos en el callback y no hay error
-  var error = new URLSearchParams(window.location.search).get('error');
-  if (error) return null;
-
-  // Simular usuario autenticado (solo en ambiente local o desarrollo)
   var user = {
     rut: sessionStorage.getItem('tucasa-demo-rut') || '12.345.678-5',
-    nombre: sessionStorage.getItem('tucasa-demo-nombre') || 'Usuario Demostracion',
+    nombre: sessionStorage.getItem('tucasa-demo-nombre') || 'Usuario Demo',
     apellidos: '',
-    email: 'demo@tucasa.cl',
     verificado: true,
     metodo: 'demo',
     timestamp: new Date().toISOString()
   };
 
-  console.log('Modo demostracion activado - Clave Unica no configurada');
-  console.log('Registra tu app en: https://claveunica.gob.cl/desarrolladores');
-  console.log('Luego guarda el client_id en la configuracion de la app');
-
-  localStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
+  sessionStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
   return user;
 }
 
 /**
- * Cierra la sesion
+ * Cierra la sesion y elimina TODOS los datos
  */
 function cerrarSesionClaveUnica() {
-  localStorage.removeItem('tucasa-claveunica-user');
+  sessionStorage.removeItem('tucasa-claveunica-user');
   sessionStorage.removeItem('claveunica-state');
+  sessionStorage.removeItem('tucasa-demo-rut');
+  sessionStorage.removeItem('tucasa-demo-nombre');
   window.location.href = 'index.html?auth=logout';
 }
 
 /**
- * Verifica si el usuario esta autenticado
+ * Verifica si el usuario esta autenticado (sesion activa)
  */
 function usuarioAutenticado() {
-  var userData = localStorage.getItem('tucasa-claveunica-user');
+  var userData = sessionStorage.getItem('tucasa-claveunica-user');
   if (!userData) return null;
   try {
-    var user = JSON.parse(userData);
-    return user;
+    return JSON.parse(userData);
   } catch (e) {
     return null;
   }
 }
 
 /**
- * Muestra el dialogo de configuracion para guardar Client ID
- */
-function mostrarDialogoConfiguracion() {
-  var clientId = prompt(
-    '=== CONFIGURAR CLAVE UNICA ===\n\n' +
-    'Para usar Clave Unica real, necesitas un Client ID.\n\n' +
-    '1. Ve a: https://claveunica.gob.cl/desarrolladores\n' +
-    '2. Registra tu aplicacion\n' +
-    '3. Usa como redirect_uri:\n   ' + claveUnicaSettings.redirectUri + '\n\n' +
-    'Ingresa tu Client ID o escribe "demo" para probar sin Clave Unica:'
-  );
-
-  if (clientId === 'demo') {
-    sessionStorage.setItem('tucasa-demo-rut', prompt('RUT de prueba:', '12.345.678-5') || '12.345.678-5');
-    sessionStorage.setItem('tucasa-demo-nombre', prompt('Nombre de prueba:', 'Usuario Demo') || 'Usuario Demo');
-    window.location.href = 'callback.html';
-  } else if (clientId && clientId.length > 5) {
-    localStorage.setItem('tucasa-claveunica-clientid', clientId);
-    claveUnicaSettings.clientId = clientId;
-    alert('Client ID guardado. Ahora intenta ingresar nuevamente.');
-  }
-}
-
-/**
- * Formatea el RUT desde el formato raw (XX.XXX.XXX-X)
+ * Formatea el RUT
  */
 function formatearRUT(rut) {
   if (!rut) return '';
@@ -255,9 +301,6 @@ function formatearRUT(rut) {
   return cuerpo + '-' + dv;
 }
 
-/**
- * Genera string aleatorio para state/nonce
- */
 function generarRandomString(length) {
   var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   var result = '';
