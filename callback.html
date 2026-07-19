@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clave Unica - Procesando...</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .callback-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; text-align: center; padding: 24px; background: var(--bg);
+        }
+        .callback-icon { font-size: 4rem; color: var(--primary); margin-bottom: 20px; }
+        .callback-icon i { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .callback-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+        .callback-sub { color: var(--text-secondary); font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div class="callback-icon"><i class="fa-solid fa-star"></i></div>
+        <div class="callback-title">Procesando autenticacion con Clave Unica...</div>
+        <div class="callback-sub" id="callbackStatus">Intercambiando token de seguridad</div>
+        <p style="margin-top:20px;color:var(--text-light);font-size:0.85rem" id="callbackResult"></p>
+    </div>
+    <script src="js/auth.js"></script>
+    <script>
+        (async function() {
+            var status = document.getElementById('callbackStatus');
+            var result = document.getElementById('callbackResult');
+            try {
+                var user = await procesarCallbackClaveUnica();
+                if (user) {
+                    status.textContent = 'Identidad verificada exitosamente';
+                    status.style.color = '#10b981';
+                    result.textContent = 'RUT: ' + user.rut + ' · Nombre: ' + user.nombre;
+                    localStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
+                    // Redirigir de vuelta a la app principal
+                    setTimeout(function() {
+                        window.location.href = 'index.html?auth=success';
+                    }, 1000);
+                } else {
+                    status.textContent = 'No se pudo completar la autenticacion';
+                    status.style.color = '#ef4444';
+                    result.textContent = 'Por favor intenta nuevamente o continua sin Clave Unica.';
+                    setTimeout(function() {
+                        window.location.href = 'index.html?auth=error';
+                    }, 2000);
+                }
+            } catch (err) {
+                status.textContent = 'Error en la autenticacion';
+                status.style.color = '#ef4444';
+                result.textContent = err.message;
+                setTimeout(function() {
+                    window.location.href = 'index.html?auth=error';
+                }, 2000);
+            }
+        })();
+    </script>
+</body>
+</html>
