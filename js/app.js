@@ -934,12 +934,16 @@
     initModal();
 
     // Cargar UF desde mindicador.cl (REAL)
-    await obtenerValorUF();
+    try {
+      await obtenerValorUF();
+    } catch (e) {
+      console.warn("UF fallo, usando valor por defecto:", e.message);
+    }
 
     // Intentar ajustar tasas con CMF/SBIF (REAL)
     try {
       var tasaReal = await obtenerTasaReal();
-      if (tasaReal) {
+      if (tasaReal && tasaReal > 0) {
         ajustarTasasConCMF(tasaReal);
       }
     } catch (e) {
@@ -949,6 +953,11 @@
     actualizarDisplayFuentes();
     actualizarBadgeML();
     initUI_ClaveUnica();
+
+    console.log("✅ TuCasaChile inicializado correctamente");
+    console.log("💡 UF:", valorUF ? "$" + Math.round(valorUF) : "pendiente");
+    console.log("💡 Tasas:", window._tasasAjustadas ? "CMF conectado" : "referenciales");
+    console.log("💡 Clave Unica:", usuarioAutenticado() ? "autenticado" : "no autenticado - click para probar");
   }
 
   // ===== INTERFAZ CLAVE UNICA =====

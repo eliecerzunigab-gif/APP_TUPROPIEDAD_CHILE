@@ -338,27 +338,25 @@ async function obtenerTasaReal() {
 
 async function obtenerTasaSBIF() {
   try {
-    // La Comision para el Mercado Financiero (CMF) publica estadisticas
-    // Usamos la API v1 que es mas estable
     var url = "https://api.cmfchile.cl/api-sbi/estadisticas/financiero/2024/1/mercado-cambios/operaciones-cambio/F030_TASA_INTERES_PROMEDIO/17/18/19/20/21/d?formato=json";
-    console.log("CMF:", url);
+    console.log("Intentando CMF...");
     var response = await fetch(url);
-    if (!response.ok) throw new Error("Error CMF");
+    if (!response.ok) throw new Error("Respuesta no ok");
     var data = await response.json();
     if (data && data.data && data.data.length > 0) {
       for (var i = data.data.length - 1; i >= 0; i--) {
         if (data.data[i].valor && parseFloat(data.data[i].valor) > 0) {
           var tasa = parseFloat(data.data[i].valor);
-          console.log("Tasa CMF:", tasa + "%", data.data[i].fecha);
+          console.log("✅ Tasa CMF obtenida:", tasa + "%", data.data[i].fecha);
           window._tasaCMFReal = tasa;
           window._fechaTasaCMF = data.data[i].fecha;
           return tasa;
         }
       }
     }
-    throw new Error("Sin datos CMF");
+    throw new Error("Formato inesperado");
   } catch (e) {
-    console.warn("CMF:", e.message);
+    console.warn("⚠️ CMF no disponible:", e.message);
     return null;
   }
 }
