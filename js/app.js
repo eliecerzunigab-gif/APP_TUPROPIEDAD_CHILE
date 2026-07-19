@@ -952,7 +952,7 @@
 
     actualizarDisplayFuentes();
     actualizarBadgeML();
-    initUI_ClaveUnica();
+    initUI_Auth();
 
     console.log("✅ TuCasaChile inicializado correctamente");
     console.log("💡 UF:", valorUF ? "$" + Math.round(valorUF) : "pendiente");

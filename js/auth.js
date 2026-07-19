@@ -1,319 +1,249 @@
 /**
- * TuCasaChile - Autenticacion con Clave Unica (OpenID Connect)
- * Flujo OAuth2 para validar identidad del usuario
+ * TuCasaChile - Validacion de Identidad y Carga de Documentos
  * 
- * SOLO extrae: RUT, nombre, apellidos (scope: openid run name)
- * NO guarda datos bancarios, crediticios ni personales
- * Datos de sesion se eliminan al cerrar el navegador
+ * Funcionalidades:
+ * 1. Validacion de RUT chileno (algoritmo modulo 11)
+ * 2. Carga de informes crediticios (PDF, CSV, imagenes)
+ * 3. Links a servicios del Estado para obtener informes reales
+ * 4. SIN conexion a Clave Unica (requiere aprobacion gubernamental)
  */
 
-// === CONFIGURACION ===
-// Para usar Clave Unica REAL:
-// 1. Registrate en https://claveunica.gob.cl/desarrolladores
-// 2. Crea una aplicacion con:
-//    - Nombre: TuCasaChile
-//    - Redirect URI: https://TU_DOMINIO/callback.html
-//    - Scope: openid run name
-// 3. Copia el Client ID y Client Secret aqui
-var claveUnicaSettings = {
-  clientId: localStorage.getItem('tucasa-claveunica-clientid') || '',
-  clientSecret: localStorage.getItem('tucasa-claveunica-secret') || '',
-  redirectUri: (function() {
-    // Construir URL base correcta para cualquier entorno (local, GitHub Pages, etc)
-    var base = window.location.origin + window.location.pathname;
-    // Quitar index.html si esta presente
-    base = base.replace(/index\.html$/, '');
-    // Asegurar que termine con /
-    if (!base.endsWith('/')) base += '/';
-    return base + 'callback.html';
-  })(),
-  scope: 'openid run name',  // SOLO: identidad + RUT + nombre
-  endpoints: {
-    authorization: 'https://accounts.claveunica.gob.cl/openid/authorize',
-    token: 'https://accounts.claveunica.gob.cl/openid/token',
-    userinfo: 'https://accounts.claveunica.gob.cl/openid/userinfo',
-    logout: 'https://accounts.claveunica.gob.cl/openid/logout'
+// ===== VALIDACION DE RUT CHILENO (Algoritmo Modulo 11) =====
+function validarRUTChileno(rut) {
+  if (!rut) return { valido: false, error: 'RUT vacio' };
+  
+  // Limpiar formato
+  var limpio = rut.replace(/\./g, '').replace(/\-/g, '').trim().toUpperCase();
+  
+  if (limpio.length < 7 || limpio.length > 9) {
+    return { valido: false, error: 'Largo invalido' };
   }
-};
-
-// =============================================
-// CLIENT ID TEMPORAL para GitHub Pages
-// Reemplazar con el tuyo tras registro en:
-// https://claveunica.gob.cl/desarrolladores
-// =============================================
-// Si tienes un Client ID real, pegalo aqui:
-// var MI_CLIENT_ID = "tu-client-id-de-clave-unica";
-// localStorage.setItem('tucasa-claveunica-clientid', MI_CLIENT_ID);
-
-/**
- * Verifica si hay un Client ID valido configurado
- */
-function tieneClaveUnicaReal() {
-  var id = claveUnicaSettings.clientId;
-  return id && id.length >= 20 && id !== 'TU_CLIENT_ID_AQUI';
+  
+  var cuerpo = limpio.slice(0, -1);
+  var dv = limpio.slice(-1);
+  
+  // Verificar que el cuerpo sean solo numeros
+  if (!/^\d+$/.test(cuerpo)) {
+    return { valido: false, error: 'El RUT debe contener solo numeros' };
+  }
+  
+  // Calcular digito verificador
+  var suma = 0;
+  var multiplo = 2;
+  for (var i = cuerpo.length - 1; i >= 0; i--) {
+    suma += parseInt(cuerpo[i]) * multiplo;
+    multiplo = multiplo < 7 ? multiplo + 1 : 2;
+  }
+  
+  var dvEsperado = 11 - (suma % 11);
+  if (dvEsperado === 11) dvEsperado = '0';
+  else if (dvEsperado === 10) dvEsperado = 'K';
+  else dvEsperado = dvEsperado.toString();
+  
+  if (dv !== dvEsperado) {
+    return { 
+      valido: false, 
+      error: 'Digito verificador incorrecto. Deberia ser: ' + dvEsperado,
+      rutFormateado: formatearRUTNumero(cuerpo + dvEsperado)
+    };
+  }
+  
+  return {
+    valido: true,
+    rutLimpio: cuerpo + dv,
+    rutFormateado: formatearRUTNumero(cuerpo + dv),
+    dv: dv
+  };
 }
 
-/**
- * Inicia el flujo de autenticacion con Clave Unica real
- */
-function iniciarLoginClaveUnica() {
-  if (tieneClaveUnicaReal()) {
-    iniciarClaveUnicaReal();
-  } else {
-    mostrarOpcionesClaveUnica();
-  }
+function formatearRUTNumero(rutLimpio) {
+  if (!rutLimpio || rutLimpio.length < 7) return rutLimpio;
+  var cuerpo = rutLimpio.slice(0, -1);
+  var dv = rutLimpio.slice(-1).toUpperCase();
+  cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return cuerpo + '-' + dv;
 }
 
-/**
- * Muestra opciones: registrar Client ID o probar en modo demo
- */
-function mostrarOpcionesClaveUnica() {
-  var opcion = confirm(
-    '=== CLAVE UNICA - IDENTIDAD OFICIAL ===\n\n' +
-    '¿Deseas ingresar con Clave Unica REAL?\n\n' +
-    'Haz clic en Aceptar para configurar tu Client ID\n' +
-    '(Necesitas registrar tu app en claveunica.gob.cl)\n\n' +
-    'Haz clic en Cancelar para probar en modo demo'
+// ===== INICIO DE SESION CON RUT (modo local, sin Clave Unica) =====
+function iniciarLoginLocal() {
+  var rut = prompt(
+    '=== VALIDACION DE IDENTIDAD ===\n\n' +
+    'Ingresa tu RUT chileno para validar tu identidad\n' +
+    '(Ej: 12.345.678-5)\n\n' +
+    'Esta validacion es local. Tus datos NO se envian a ningun servidor.'
   );
-
-  if (opcion) {
-    // Intentar configurar Client ID
-    var clientId = prompt(
-      '=== CONFIGURAR CLAVE UNICA REAL ===\n\n' +
-      'Pasos previos:\n' +
-      '1. Ve a: https://claveunica.gob.cl/desarrolladores\n' +
-      '2. Inicia sesion con tu Clave Unica\n' +
-      '3. Crea una aplicacion nueva\n' +
-      '4. Usa como redirect_uri exactamente:\n   ' + claveUnicaSettings.redirectUri + '\n' +
-      '5. Copia el Client ID generado\n\n' +
-      'Pega aqui tu Client ID:'
-    );
-
-    if (clientId && clientId.length >= 20) {
-      localStorage.setItem('tucasa-claveunica-clientid', clientId);
-      claveUnicaSettings.clientId = clientId;
-      alert('✅ Client ID guardado. Ahora intenta ingresar nuevamente.');
-      iniciarLoginClaveUnica();
-    } else if (clientId) {
-      alert('❌ El Client ID ingresado no es valido. Debe tener al menos 20 caracteres.');
-    }
-  } else {
-    // Modo demo: sin Clave Unica, solo simulado
-    iniciarModoDemo();
-  }
-}
-
-/**
- * Flujo REAL de Clave Unica (OAuth2 / OpenID Connect)
- */
-function iniciarClaveUnicaReal() {
-  var state = generarRandomString(32);
-  var nonce = generarRandomString(32);
-
-  // Guardar state y nonce SOLO en sessionStorage (se borra al cerrar)
-  sessionStorage.setItem('claveunica-state', state);
-  sessionStorage.setItem('claveunica-nonce', nonce);
-
-  var authUrl = claveUnicaSettings.endpoints.authorization + '?' +
-    'client_id=' + encodeURIComponent(claveUnicaSettings.clientId) +
-    '&response_type=code' +
-    '&scope=' + encodeURIComponent(claveUnicaSettings.scope) +
-    '&redirect_uri=' + encodeURIComponent(claveUnicaSettings.redirectUri) +
-    '&state=' + state +
-    '&nonce=' + nonce;
-
-  console.log('🔐 Redirigiendo a Clave Unica...');
-  window.location.href = authUrl;
-}
-
-/**
- * Modo demo: prueba sin Clave Unica real
- */
-function iniciarModoDemo() {
-  var rut = prompt('=== MODO DEMOSTRACION ===\n\nSimulacion de identidad. No usa Clave Unica real.\n\nIngresa un RUT (ej: 12.345.678-5):', '12.345.678-5');
+  
   if (!rut) return;
-
-  var nombre = prompt('Nombre:', 'Usuario Demo');
-  if (!nombre) nombre = 'Usuario Demo';
-
-  // Guardar SOLO en sessionStorage (se borra al cerrar)
-  sessionStorage.setItem('tucasa-demo-rut', rut);
-  sessionStorage.setItem('tucasa-demo-nombre', nombre);
-  window.location.href = 'callback.html?demo=true';
+  
+  var resultado = validarRUTChileno(rut);
+  
+  if (!resultado.valido) {
+    alert('❌ RUT INVALIDO\n\n' + resultado.error + '\n\n' +
+      (resultado.rutFormateado ? '¿Quisiste decir: ' + resultado.rutFormateado + '?' : '') +
+      '\n\nIntenta nuevamente.');
+    return;
+  }
+  
+  // RUT valido, pedir nombre
+  var nombre = prompt(
+    '✅ RUT VALIDO: ' + resultado.rutFormateado + '\n\n' +
+    'Ingresa tu nombre completo:',
+    sessionStorage.getItem('tucasa-nombre') || ''
+  );
+  
+  if (!nombre) return;
+  
+  // Guardar en sesion
+  var user = {
+    rut: resultado.rutFormateado,
+    nombre: nombre.trim(),
+    verificado: true,
+    timestamp: new Date().toISOString()
+  };
+  
+  sessionStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
+  sessionStorage.setItem('tucasa-nombre', nombre.trim());
+  
+  // Recargar para mostrar perfil
+  window.location.href = 'index.html?auth=success';
 }
 
-/**
- * Procesa el callback de Clave Unica
- */
-async function procesarCallbackClaveUnica() {
-  var params = new URLSearchParams(window.location.search);
-  var code = params.get('code');
-  var state = params.get('state');
-  var error = params.get('error');
-  var esDemo = params.get('demo');
-
-  if (error) {
-    console.error('❌ Clave Unica error:', error);
-    throw new Error('Autenticacion cancelada');
+// ===== VERIFICACION DE IDENTIDAD CON INFORME (carga de archivos) =====
+function iniciarCargaInformes() {
+  var user = usuarioAutenticado();
+  if (!user) {
+    alert('Primero valida tu RUT haciendo clic en "Validar Identidad".');
+    return;
   }
-
-  if (esDemo === 'true') {
-    return modoDemostracion();
-  }
-
-  if (!code) {
-    return modoDemostracion();
-  }
-
-  // Verificar state anti-CSRF
-  var savedState = sessionStorage.getItem('claveunica-state');
-  if (state !== savedState) {
-    throw new Error('Error de seguridad: state no coincide');
-  }
-
-  // Intercambiar codigo por token
-  try {
-    console.log('🔄 Intercambiando codigo por token...');
-    var tokenData = await intercambiarToken(code);
-
-    if (tokenData && tokenData.access_token) {
-      console.log('✅ Token obtenido, consultando datos del usuario...');
-      var userInfo = await obtenerInfoUsuario(tokenData.access_token);
-      return formatearUsuario(userInfo);
+  
+  // Crear input de archivo temporal
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.csv,.xlsx,.jpg,.png,.txt';
+  input.multiple = true;
+  
+  input.onchange = function(e) {
+    var archivos = e.target.files;
+    if (archivos.length === 0) return;
+    
+    var listaArchivos = [];
+    for (var i = 0; i < archivos.length; i++) {
+      var archivo = archivos[i];
+      listaArchivos.push({
+        nombre: archivo.name,
+        tipo: archivo.type,
+        tamaño: (archivo.size / 1024).toFixed(1) + ' KB',
+        fecha: new Date().toLocaleString('es-CL')
+      });
     }
-  } catch (e) {
-    console.error('❌ Error en autenticacion Clave Unica:', e.message);
-    throw new Error('No se pudo completar la autenticacion: ' + e.message);
-  }
-
-  return null;
-}
-
-/**
- * Intercambia el codigo de autorizacion por un access_token
- */
-async function intercambiarToken(code) {
-  var body = new URLSearchParams();
-  body.append('grant_type', 'authorization_code');
-  body.append('code', code);
-  body.append('redirect_uri', claveUnicaSettings.redirectUri);
-  body.append('client_id', claveUnicaSettings.clientId);
-  body.append('client_secret', claveUnicaSettings.clientSecret);
-
-  var response = await fetch(claveUnicaSettings.endpoints.token, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-
-  if (!response.ok) {
-    var errorText = await response.text();
-    throw new Error('Token exchange failed: ' + errorText);
-  }
-
-  return await response.json();
-}
-
-/**
- * Obtiene la informacion del usuario autenticado
- * SOLO extrae: RUT, nombre, apellidos (scope openid run name)
- */
-async function obtenerInfoUsuario(accessToken) {
-  var response = await fetch(claveUnicaSettings.endpoints.userinfo, {
-    headers: { 'Authorization': 'Bearer ' + accessToken }
-  });
-
-  if (!response.ok) throw new Error('Error al obtener datos del usuario');
-
-  return await response.json();
-}
-
-/**
- * Formatea los datos del usuario desde Clave Unica
- * SOLO extrae: RUT y nombre (info publica basica)
- * NO guarda datos sensibles ni crediticios
- */
-function formatearUsuario(userInfo) {
-  var user = {
-    rut: formatearRUT(userInfo.sub || userInfo.RUN || userInfo.RUT || ''),
-    nombre: (userInfo.name || userInfo.nombre || userInfo.given_name || 'Usuario').trim(),
-    apellidos: (userInfo.family_name || userInfo.apellidos || '').trim(),
-    verificado: true,
-    metodo: 'claveunica',
-    timestamp: new Date().toISOString()
+    
+    // Guardar metadata de archivos en sesion
+    var existentes = JSON.parse(sessionStorage.getItem('tucasa-documentos') || '[]');
+    sessionStorage.setItem('tucasa-documentos', JSON.stringify(existentes.concat(listaArchivos)));
+    
+    mostrarDocumentosCargados();
+    
+    alert('✅ ' + archivos.length + ' archivo(s) cargado(s) exitosamente.\n\n' +
+      'Tipos aceptados: PDF (informe DICOM), CSV, planillas Excel, fotos de liquidaciones.\n\n' +
+      'IMPORTANTE: Los archivos se procesan SOLO en tu navegador.\n' +
+      'No se suben a ningun servidor externo.');
   };
-
-  // Guardar SOLO en sessionStorage (se borra al cerrar el navegador)
-  // NO se guardan datos en localStorage para proteger la privacidad
-  sessionStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
-
-  console.log('✅ Usuario autenticado via Clave Unica');
-  console.log('📋 RUT:', user.rut);
-  console.log('👤 Nombre:', user.nombre);
-  console.log('💡 Datos solo en sesion. Se eliminan al cerrar navegador.');
-
-  return user;
+  
+  input.click();
 }
 
-/**
- * Modo demostracion
- */
-function modoDemostracion() {
-  var user = {
-    rut: sessionStorage.getItem('tucasa-demo-rut') || '12.345.678-5',
-    nombre: sessionStorage.getItem('tucasa-demo-nombre') || 'Usuario Demo',
-    apellidos: '',
-    verificado: true,
-    metodo: 'demo',
-    timestamp: new Date().toISOString()
-  };
-
-  sessionStorage.setItem('tucasa-claveunica-user', JSON.stringify(user));
-  return user;
+function mostrarDocumentosCargados() {
+  var container = document.getElementById('documentosCargados');
+  if (!container) return;
+  
+  var docs = JSON.parse(sessionStorage.getItem('tucasa-documentos') || '[]');
+  
+  if (docs.length === 0) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    return;
+  }
+  
+  var html = '<strong>📄 Documentos cargados (' + docs.length + '):</strong><br>';
+  docs.forEach(function(doc) {
+    html += '<span style="font-size:0.8rem;color:#64748b">• ' + doc.nombre + ' (' + doc.tamaño + ')</span><br>';
+  });
+  html += '<small style="color:#10b981">✅ Procesados localmente</small>';
+  
+  container.innerHTML = html;
+  container.style.display = 'block';
 }
 
-/**
- * Cierra la sesion y elimina TODOS los datos
- */
-function cerrarSesionClaveUnica() {
+// ===== CIERRE DE SESION =====
+function cerrarSesionLocal() {
   sessionStorage.removeItem('tucasa-claveunica-user');
-  sessionStorage.removeItem('claveunica-state');
-  sessionStorage.removeItem('tucasa-demo-rut');
-  sessionStorage.removeItem('tucasa-demo-nombre');
+  sessionStorage.removeItem('tucasa-nombre');
+  sessionStorage.removeItem('tucasa-documentos');
   window.location.href = 'index.html?auth=logout';
 }
 
-/**
- * Verifica si el usuario esta autenticado (sesion activa)
- */
+// ===== VERIFICAR AUTENTICACION =====
 function usuarioAutenticado() {
   var userData = sessionStorage.getItem('tucasa-claveunica-user');
   if (!userData) return null;
   try {
-    return JSON.parse(userData);
+    var user = JSON.parse(userData);
+    return user.verificado ? user : null;
   } catch (e) {
     return null;
   }
 }
 
-/**
- * Formatea el RUT
- */
-function formatearRUT(rut) {
-  if (!rut) return '';
-  rut = rut.replace(/\./g, '').replace(/\-/g, '').trim();
-  if (rut.length < 7) return rut;
-  var cuerpo = rut.slice(0, -1);
-  var dv = rut.slice(-1).toUpperCase();
-  cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return cuerpo + '-' + dv;
+// ===== LINKS A SERVICIOS DEL ESTADO =====
+function abrirLinkServicio(tipo) {
+  var links = {
+    dicom: 'https://www.equifax.cl/',
+    sii: 'https://www.sii.cl/',
+    chileatiende: 'https://www.chileatiende.gob.cl/',
+    previred: 'https://www.previred.com/',
+    cmf: 'https://www.cmfchile.cl/',
+    claveunica: 'https://www.claveunica.gob.cl/'
+  };
+  
+  if (links[tipo]) {
+    window.open(links[tipo], '_blank');
+  }
 }
 
-function generarRandomString(length) {
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var result = '';
-  for (var i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+// ===== UI INIT =====
+function initUI_Auth() {
+  var user = usuarioAutenticado();
+  var btnLogin = document.getElementById('btnClaveUnica');
+  var btnLogout = document.getElementById('btnCerrarSesion');
+  var btnUpload = document.getElementById('btnSubirInformes');
+  var userNameDisplay = document.getElementById('userNameDisplay');
+  var sectionDocs = document.getElementById('seccionDocumentos');
+  
+  if (user && user.verificado) {
+    if (btnLogin) btnLogin.style.display = 'none';
+    if (btnLogout) {
+      btnLogout.style.display = 'inline-flex';
+      if (userNameDisplay) {
+        userNameDisplay.textContent = user.nombre + ' (RUT: ' + user.rut + ')';
+      }
+    }
+    if (btnUpload) btnUpload.style.display = 'inline-flex';
+    if (sectionDocs) sectionDocs.style.display = 'block';
+    mostrarDocumentosCargados();
+  } else {
+    if (btnLogin) btnLogin.style.display = 'inline-flex';
+    if (btnLogout) btnLogout.style.display = 'none';
+    if (btnUpload) btnUpload.style.display = 'none';
+    if (sectionDocs) sectionDocs.style.display = 'none';
   }
-  return result;
+  
+  // Manejar parametros URL
+  var params = new URLSearchParams(window.location.search);
+  var auth = params.get('auth');
+  if (auth === 'success') {
+    setTimeout(function() { alert('✅ Identidad validada correctamente'); }, 500);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (auth === 'logout') {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 }

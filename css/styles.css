@@ -572,6 +572,9 @@ section:nth-child(even) { background: #fff; }
 .btn-claveunica i { color: #f97316; font-size: 0.9rem; }
 .btn-logout { border-color: #dc2626; color: #dc2626; background: transparent; }
 .btn-logout:hover { background: #fef2f2; }
+.btn-upload { border-color: #10b981; color: #065f46; }
+.btn-upload:hover { background: #f0fdf4; }
+.btn-upload i { color: #10b981; }
 [data-theme="dark"] .btn-claveunica { background: var(--bg-card); border-color: #3b82f6; color: #93c5fd; }
 [data-theme="dark"] .btn-claveunica:hover { background: #1e3a5f; }
 [data-theme="dark"] .btn-logout { border-color: #f87171; color: #fca5a5; }

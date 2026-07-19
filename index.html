@@ -41,11 +41,15 @@
                 <a href="#resultados" class="nav-link">Resultados</a>
             </nav>
             <div class="header-actions">
-                <button id="btnClaveUnica" class="btn-claveunica" onclick="iniciarLoginClaveUnica()">
-                    <i class="fa-solid fa-star"></i>
-                    <span id="claveUnicaText">Ingresar con Clave Unica</span>
+                <button id="btnClaveUnica" class="btn-claveunica" onclick="iniciarLoginLocal()">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span id="claveUnicaText">Validar RUT</span>
                 </button>
-                <button id="btnCerrarSesion" class="btn-claveunica btn-logout" onclick="cerrarSesionClaveUnica()" style="display:none">
+                <button id="btnSubirInformes" class="btn-claveunica btn-upload" onclick="iniciarCargaInformes()" style="display:none">
+                    <i class="fa-solid fa-upload"></i>
+                    <span>Subir Informes</span>
+                </button>
+                <button id="btnCerrarSesion" class="btn-claveunica btn-logout" onclick="cerrarSesionLocal()" style="display:none">
                     <span id="userNameDisplay"></span>
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
