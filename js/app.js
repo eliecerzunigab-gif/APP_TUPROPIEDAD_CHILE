@@ -197,21 +197,20 @@
     const propiedadMaxPorPie = Math.round(ahorrosPie / 0.10);
     const creditoMaxPorPie = Math.round(propiedadMaxPorPie * 0.90);
 
+    const porcentajeFinanciamiento = 0.90; // 90% financiamiento (pie 10%)
+    const porcentajePie = 0.10;
+
     // === RESTRICCION 2: LIMITE POR DIVIDENDO (25% del ingreso) ===
     const plazoMeses = plazoAnos * 12;
-    // Tasa de referencia segun tipo de vivienda (promedio mercado primeros bancos)
     const tasaRefAnual = tipoVivienda === 'primera' ? 0.045 : 0.049;
     const tasaRefMensual = tasaRefAnual / 12;
 
-    // Estimar seguros (~UF 0.035/mes por UF de credito ≈ $1.300 por UF)
-    // Para un credito tipico de UF 2000: 2000 * 0.035 * 37050 / 12 ≈ $216,000/mes
-    // Descontamos un estimado de seguros del dividendo disponible
-    const seguroEstimadoMensual = 80000; // Aproximacion razonable para creditos promedio
+    // Estimar seguros
+    const seguroEstimadoMensual = 80000;
     const dividendoNetoDisponible = capacidadPagoBruta - seguroEstimadoMensual;
 
     let montoMaxCredito = 0;
     if (tasaRefMensual > 0 && plazoMeses > 0 && dividendoNetoDisponible > 0) {
-      // Formula inversa de anualidad: VP = PMT * (1 - (1+i)^-n) / i
       montoMaxCredito = dividendoNetoDisponible *
         (1 - Math.pow(1 + tasaRefMensual, -plazoMeses)) /
         tasaRefMensual;
@@ -220,16 +219,14 @@
     }
     montoMaxCredito = Math.round(montoMaxCredito);
 
-    // Propiedad maxima = credito maximo (80%) + pie (20%) => propiedad = credito / 0.80
-    // Pero el credito se calcula con el dividendo neto. La propiedad maxima seria:
-    const propiedadMaxPorDividendo = Math.round(montoMaxCredito / 0.80);
-    // El pie requerido para esa propiedad seria el 20%
-    const pieRequeridoPorDividendo = Math.round(propiedadMaxPorDividendo * 0.20);
+    // Propiedad maxima = credito / porcentajeFinanciamiento (ej: 90%)
+    const propiedadMaxPorDividendo = Math.round(montoMaxCredito / porcentajeFinanciamiento);
+    const pieRequeridoPorDividendo = Math.round(propiedadMaxPorDividendo * porcentajePie);
 
     // === RESTRICCION FINAL: La que sea menor ===
     const propiedadMaximaEstimada = Math.min(propiedadMaxPorPie, propiedadMaxPorDividendo);
-    const creditoMaximoReal = Math.round(propiedadMaximaEstimada * 0.80);
-    const pieRequeridoReal = Math.round(propiedadMaximaEstimada * 0.20);
+    const creditoMaximoReal = Math.round(propiedadMaximaEstimada * porcentajeFinanciamiento);
+    const pieRequeridoReal = Math.round(propiedadMaximaEstimada * porcentajePie);
 
     return {
       ingresoTitular: ingresoTitular,
@@ -452,6 +449,15 @@
           '<span class="credito-detail-label">Seguros aprox.</span>' +
           '<span class="credito-detail-value">' + formatCLP(credito.seguroIncendioMensual + credito.seguroDesgravamenMensual) + '/mes</span>' +
         '</div>' +
+      '</div>' +
+      '<div style="margin-top:12px;padding:8px 10px;background:#f8fafc;border-radius:6px;font-size:0.8rem">' +
+        '<strong style="color:#1e40af">Comparativa:</strong> ' +
+        (banco.tasaFijaPrimera ? 
+          'Tasa fija ' + formatPorcentaje(banco.tasaFijaPrimera) + ' vs variable ' + formatPorcentaje(credito.tasaAnual) + 
+          '. <span style="color:' + (banco.tasaFijaPrimera < credito.tasaAnual ? '#10b981' : '#ef4444') + ';font-weight:700">' +
+          (banco.tasaFijaPrimera < credito.tasaAnual ? 'Conviene fija' : 'Conviene variable') + '</span>' : 
+          'Este banco solo ofrece tasa variable'
+        ) +
       '</div>' +
       '<div style="font-size:0.78rem;color:#64748b;margin-top:8px;">' + banco.requisitos + '</div>' +
     '</div>';
