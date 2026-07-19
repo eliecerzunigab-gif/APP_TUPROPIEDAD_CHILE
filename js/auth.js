@@ -25,8 +25,11 @@ var claveUnicaSettings = {
  * Inicia el flujo de autenticacion con Clave Unica
  */
 function iniciarLoginClaveUnica() {
-  // Si no hay clientId configurado, iniciar modo demo directamente
-  if (claveUnicaSettings.clientId === 'TU_CLIENT_ID_AQUI') {
+  // SIEMPRE usar modo demo hasta que se configure un Client ID real
+  // El Client ID real debe ser distinto al placeholder y tener al menos 20 caracteres
+  if (!claveUnicaSettings.clientId || 
+      claveUnicaSettings.clientId === 'TU_CLIENT_ID_AQUI' ||
+      claveUnicaSettings.clientId.length < 20) {
     iniciarModoDemo();
     return;
   }
