@@ -948,6 +948,46 @@
 
     actualizarDisplayFuentes();
     actualizarBadgeML();
+    initUI_ClaveUnica();
+  }
+
+  // ===== INTERFAZ CLAVE UNICA =====
+  function initUI_ClaveUnica() {
+    var user = usuarioAutenticado();
+    var btnLogin = document.getElementById('btnClaveUnica');
+    var btnLogout = document.getElementById('btnCerrarSesion');
+    var userNameDisplay = document.getElementById('userNameDisplay');
+
+    if (user && user.verificado) {
+      // Usuario autenticado
+      if (btnLogin) btnLogin.style.display = 'none';
+      if (btnLogout) {
+        btnLogout.style.display = 'inline-flex';
+        if (userNameDisplay) {
+          userNameDisplay.textContent = (user.nombre || 'Usuario') + ' (RUT: ' + (user.rut || '') + ')';
+        }
+      }
+    } else {
+      // Usuario no autenticado
+      if (btnLogin) btnLogin.style.display = 'inline-flex';
+      if (btnLogout) btnLogout.style.display = 'none';
+    }
+
+    // Verificar parametro auth en URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var authStatus = urlParams.get('auth');
+    if (authStatus === 'success') {
+      showToast('Identidad verificada exitosamente con Clave Unica');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      initUI_ClaveUnica();
+    } else if (authStatus === 'logout') {
+      showToast('Sesion cerrada correctamente');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      initUI_ClaveUnica();
+    } else if (authStatus === 'error') {
+      showToast('No se pudo completar la autenticacion');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
 
   // Iniciar cuando el DOM este listo

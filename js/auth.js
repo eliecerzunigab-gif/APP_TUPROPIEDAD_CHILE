@@ -25,9 +25,9 @@ var claveUnicaSettings = {
  * Inicia el flujo de autenticacion con Clave Unica
  */
 function iniciarLoginClaveUnica() {
-  // Si no hay clientId configurado, usar modo demostracion
+  // Si no hay clientId configurado, iniciar modo demo directamente
   if (claveUnicaSettings.clientId === 'TU_CLIENT_ID_AQUI') {
-    mostrarDialogoConfiguracion();
+    iniciarModoDemo();
     return;
   }
 
@@ -35,11 +35,9 @@ function iniciarLoginClaveUnica() {
   var state = generarRandomString(32);
   sessionStorage.setItem('claveunica-state', state);
 
-  // Generar nonce para seguridad
   var nonce = generarRandomString(32);
   sessionStorage.setItem('claveunica-nonce', nonce);
 
-  // Construir URL de autorizacion
   var authUrl = claveUnicaSettings.endpoints.authorization + '?' +
     'client_id=' + encodeURIComponent(claveUnicaSettings.clientId) +
     '&response_type=code' +
@@ -49,6 +47,16 @@ function iniciarLoginClaveUnica() {
     '&nonce=' + nonce;
 
   window.location.href = authUrl;
+}
+
+function iniciarModoDemo() {
+  var rut = prompt('=== MODO DEMOSTRACION ===\n\nProbaras la app con un perfil simulado.\n\nIngresa un RUT para simular (ej: 12.345.678-5):', '12.345.678-5');
+  if (!rut) return;
+  var nombre = prompt('Nombre a mostrar:', 'Usuario Demo');
+  if (!nombre) nombre = 'Usuario Demo';
+  sessionStorage.setItem('tucasa-demo-rut', rut);
+  sessionStorage.setItem('tucasa-demo-nombre', nombre);
+  window.location.href = 'callback.html?demo=true';
 }
 
 /**
