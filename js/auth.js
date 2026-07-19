@@ -18,7 +18,15 @@
 var claveUnicaSettings = {
   clientId: localStorage.getItem('tucasa-claveunica-clientid') || '',
   clientSecret: localStorage.getItem('tucasa-claveunica-secret') || '',
-  redirectUri: window.location.origin + window.location.pathname.replace('index.html', 'callback.html'),
+  redirectUri: (function() {
+    // Construir URL base correcta para cualquier entorno (local, GitHub Pages, etc)
+    var base = window.location.origin + window.location.pathname;
+    // Quitar index.html si esta presente
+    base = base.replace(/index\.html$/, '');
+    // Asegurar que termine con /
+    if (!base.endsWith('/')) base += '/';
+    return base + 'callback.html';
+  })(),
   scope: 'openid run name',  // SOLO: identidad + RUT + nombre
   endpoints: {
     authorization: 'https://accounts.claveunica.gob.cl/openid/authorize',
